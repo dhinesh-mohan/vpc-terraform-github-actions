@@ -1,6 +1,6 @@
 resource "aws_instance" "web" {
   count = length(var.ec2_names)
-  ami           = data.aws_ami.ubuntu.id
+  ami           = data.aws_ami.amazon-2.id
   instance_type = "t2.micro"
   associate_public_ip_address = true
   vpc_security_group_ids = [var.sg_id]
@@ -8,10 +8,9 @@ resource "aws_instance" "web" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
   user_data = <<EOF
   #!/bin/bash
-    sudo apt-get update -y
-    sudo apt-get upgrade -y
-    sudo apt-get install -y apache2
-    sudo apt-get install -y git
+    sudo yum update -y
+    sudo yum install -y httpd
+    sudo yum install -y git
     export META_INST_ID=`curl http://169.254.169.254/latest/meta-data/instance-id`
     export META_INST_TYPE=`curl http://169.254.169.254/latest/meta-data/instance-type`
     export META_INST_AZ=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone`
@@ -107,9 +106,8 @@ resource "aws_instance" "web" {
     echo "        </div>" >> index.html
     echo "</body>" >> index.html
     echo "</html>" >> index.html
-    sudo systemctl start apache2
+    sudo service httpd start
   EOF
-
   tags = {
     Name = var.ec2_names[count.index]
   }
